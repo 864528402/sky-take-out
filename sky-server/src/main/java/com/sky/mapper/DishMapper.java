@@ -1,7 +1,15 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
+import com.sky.annotation.AutoFill;
+import com.sky.dto.DishPageQueryDTO;
+import com.sky.entity.Dish;
+import com.sky.enumeration.OperationType;
+import com.sky.vo.DishVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface DishMapper {
@@ -14,4 +22,51 @@ public interface DishMapper {
     @Select("select count(id) from dish where category_id = #{categoryId}")
     Integer countByCategoryId(Long categoryId);
 
+    /**
+     * 插入菜品数据
+     * @param dish
+     */
+    @AutoFill(value = OperationType.INSERT)
+    void insert(Dish dish);
+
+    /**
+     * 菜品分页查询
+     * @param dishPageQueryDTO
+     * @return
+     */
+    Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
+/**
+     * 根据id查询菜品起售
+     * @param ids
+     * @return
+     */
+    List<Integer> getStatusByIDs(List<Long> ids);
+
+
+    /**
+     * 根据id删除菜品
+     * @param ids
+     * @return
+     */
+    void delete(List<Long> ids);
+
+    /**
+     * 修改菜品
+     * @param dish
+     */
+    @AutoFill(value = OperationType.UPDATE)
+    void update(Dish dish);
+    /**
+     * 根据id查询菜品
+     * @param id
+     * @return
+     */
+    Dish getById(Long id);
+
+    /**
+     * 起售停售菜品
+     * @param dish
+     */
+    @AutoFill(value = OperationType.UPDATE)
+    void startOrStop(Dish dish);
 }

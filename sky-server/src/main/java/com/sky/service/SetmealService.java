@@ -1,0 +1,18 @@
+package com.sky.service;
+
+import com.sky.dto.SetmealDTO;
+import com.sky.vo.SetmealVO;
+
+public interface SetmealService {
+    /**
+     * 新增套餐，同时需要保存套餐和菜品的关联关系
+     * @param setmealDTO
+     */
+    void saveWithDish(SetmealDTO setmealDTO);
+    /**
+     * 根据id查询套餐和关联的菜品信息
+     * @param id
+     * @return
+     */
+    SetmealVO getByIdWithDish(Long id);
+}
