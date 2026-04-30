@@ -11,3 +11,8 @@ sky:
     access-key-id: ${ALIYUN_ACCESS_KEY_ID}
     access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
     bucket-name: sky-xihui
+  redis:
+    host: 192.168.117.131
+    port: 6379
+    password: 2078393
+    database: 0
