@@ -27,4 +27,14 @@ public interface SetmealDishMapper {
      * param id
      */
     List<SetmealDish> getById(Long id);
+    /**
+     * 根据套餐id删除套餐与菜的关联数据
+     * param ids
+     */
+    void deleteBySetmealIDs(List<Long> ids);
+    /**
+     * 根据套餐id查询套餐的起售状态
+     * param id
+     */
+    List<Integer> getStatusById(Long id);
 }

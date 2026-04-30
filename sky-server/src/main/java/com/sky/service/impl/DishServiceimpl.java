@@ -6,13 +6,16 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.exception.BaseException;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -31,6 +35,8 @@ public class DishServiceimpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
 
     /**
      * 新增菜品，同时保存对应的口味数据
@@ -123,6 +129,14 @@ public class DishServiceimpl implements DishService {
      * @param id
      */
     public void startOrStop(Integer status, Long id) {
+        log.info("起售停售：{}", status);
+        if(status == 0){
+            List<Long> setmealIds = setmealDishMapper.getSetmealIDsByDishIDs(Arrays.asList(id));
+            List<Integer> statusList = setmealMapper.getStatusByIDs(setmealIds);
+            if(statusList.contains(1)){
+                throw new BaseException("有套餐正在售卖该菜品");
+            }
+        }
         Dish dish = Dish.builder()
                 .id(id)
                 .status(status)
@@ -130,5 +144,15 @@ public class DishServiceimpl implements DishService {
         dishMapper.startOrStop(dish);
     }
 
+    /**
+     * 根据分类id查询菜品
+     * @param categoryId
+     * @return
+     */
+    @Override
+    public List<DishVO> getListByCategoryId(Long categoryId) {
+        List<DishVO> list = dishMapper.getListByCategoryId(categoryId);
+        return list;
+    }
 
 }

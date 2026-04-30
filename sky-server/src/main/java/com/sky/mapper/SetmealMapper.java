@@ -1,11 +1,18 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
 import com.sky.annotation.AutoFill;
 import com.sky.dto.SetmealDTO;
+import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Category;
 import com.sky.entity.Setmeal;
 import com.sky.enumeration.OperationType;
+import com.sky.result.PageResult;
+import com.sky.vo.SetmealVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface SetmealMapper {
@@ -29,4 +36,29 @@ public interface SetmealMapper {
      * @return
      */
     Setmeal getById(Long id);
+
+    /**
+     * 分页查询
+     * @param setmealPageQueryDTO
+     * @return
+     */
+    Page<SetmealVO> page(SetmealPageQueryDTO setmealPageQueryDTO);
+
+    /***
+     * 查询套餐状态
+     * @param ids
+     * @return
+     */
+    List<Integer> getStatusByIDs(List<Long> ids);
+    /**
+     * 批量删除套餐
+     * @param ids
+     */
+    void delete(List<Long> ids);
+    /**
+     * 修改套餐数据
+     * @param setmeal
+     */
+    @AutoFill(value = OperationType.UPDATE)
+    void update(Setmeal setmeal);
 }
