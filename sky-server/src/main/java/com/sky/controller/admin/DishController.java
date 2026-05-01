@@ -73,9 +73,9 @@ public class DishController {
 
     @GetMapping("/list")
     @ApiOperation("查询菜品")
-    public Result<List<DishVO>> list(@RequestParam Long categoryId){
-        log.info("查询菜品：{}", categoryId);
-        List<DishVO> list = dishService.getListByCategoryId(categoryId);
+    public Result<List<Dish>> list(Dish  dish){
+        log.info("查询菜品：{}", dish);
+        List<Dish> list = dishService.getListByCategoryId(dish);
         return Result.success(list);
     }
 }
