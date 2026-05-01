@@ -18,7 +18,6 @@ public class RedisConfiguration {
         log.info("创建RedisTemplate对象成功！");
         log.info("开始设置RedisTemplate的序列化器...");
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-
         return redisTemplate;
     }
 }

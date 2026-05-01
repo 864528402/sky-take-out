@@ -13,6 +13,7 @@ import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.SetmealService;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
@@ -144,5 +145,21 @@ public class SetmealServiceimpl implements SetmealService {
                 .build();
         SetmealMapper.update(setmeal);
     }
-
+    /**
+     * 条件查询
+     * @param setmeal
+     * @return
+     */
+    public List<Setmeal> list(Setmeal setmeal) {
+        List<Setmeal> list = SetmealMapper.list(setmeal);
+        return list;
+    }
+    /**
+     * 根据id查询菜品选项
+     * @param id
+     * @return
+     */
+    public List<DishItemVO> getDishItemById(Long id) {
+        return SetmealMapper.getDishItemBySetmealId(id);
+    }
 }

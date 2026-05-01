@@ -132,10 +132,13 @@ public class DishServiceimpl implements DishService {
         log.info("起售停售：{}", status);
         if(status == 0){
             List<Long> setmealIds = setmealDishMapper.getSetmealIDsByDishIDs(Arrays.asList(id));
-            List<Integer> statusList = setmealMapper.getStatusByIDs(setmealIds);
-            if(statusList.contains(1)){
-                throw new BaseException("有套餐正在售卖该菜品");
+            if(setmealIds != null && !setmealIds.isEmpty()){
+                List<Integer> statusList = setmealMapper.getStatusByIDs(setmealIds);
+                if(statusList.contains(1)){
+                    throw new BaseException("有套餐正在售卖该菜品");
+                }
             }
+
         }
         Dish dish = Dish.builder()
                 .id(id)
@@ -146,13 +149,39 @@ public class DishServiceimpl implements DishService {
 
     /**
      * 根据分类id查询菜品
-     * @param categoryId
+     * @param dish
      * @return
      */
     @Override
-    public List<DishVO> getListByCategoryId(Long categoryId) {
-        List<DishVO> list = dishMapper.getListByCategoryId(categoryId);
+    public List<Dish> getListByCategoryId(Dish  dish) {
+        List<Dish> list = dishMapper.getListByCategoryId(dish);
         return list;
     }
+
+    /**
+     * 条件查询菜品和口味
+     * @param dish
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishList = dishMapper.getListByCategoryId(dish);
+
+        List<DishVO> dishVOList = new ArrayList<>();
+
+        for (Dish d : dishList) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d,dishVO);
+
+            //根据菜品id查询对应的口味
+            List<DishFlavor> flavors = dishFlavorMapper.getByDishID(d.getId());
+
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+
+        return dishVOList;
+    }
+
+
 
 }
