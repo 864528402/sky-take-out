@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,6 +71,7 @@ public class DishController {
 
     @PostMapping("/status/{status}")
     @ApiOperation("起售停售菜品")
+    @Transactional
     public Result startOrStop(@PathVariable Integer status,@RequestParam Long id){
         log.info("起售停售菜品：{}", status);
         cleanCache("dish_*");
