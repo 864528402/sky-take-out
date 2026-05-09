@@ -12,6 +12,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -84,4 +85,38 @@ public interface OrderMapper {
      */
     @Select("SELECT * FROM orders WHERE status = #{status}")
     List<Orders> getByStatus(@Param("status") Integer status);
+
+    /**
+     * 统计指定时间范围内的营业额
+     * @param begin
+     * @param end
+     * @param status
+     * @return
+     */
+    @Select("SELECT SUM(amount) FROM orders WHERE order_time >= #{begin} AND order_time <= #{end} AND status = #{status}")
+    Double sumByMap(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end, @Param("status") Integer status);
+
+    /**
+     * 按日期统计营业额（一次性查询整个范围）
+     * 使用XML动态SQL实现
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getTurnoverByDateRange(Map<String, Object> params);
+
+    /**
+     * 订单统计查询（按日期范围）
+     * 传入begin和end：按日期分组统计
+     * 只传入end：统计总数
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getOrderStatisticsByDateRange(Map<String, Object> params);
+
+    /**
+     * 查询销量排名top10
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getSalesTop10(Map<String, Object> params);
 }
