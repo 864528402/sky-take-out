@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -18,6 +19,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +50,8 @@ public class OrderServiceimpl implements OrderService {
     private WeChatPayUtil weChatPayUtil;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
     @Override
     @Transactional
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
@@ -138,6 +144,16 @@ public class OrderServiceimpl implements OrderService {
 
         log.info("调用updateStatus，用于替换微信支付更新数据库状态的问题");
         orderMapper.updateStatus(OrderStatus, OrderPaidStatus, check_out_time, orderNumber);
+
+        Orders orders = orderMapper.getByNumber(orderNumber);
+        //通过WebSocket向客户端浏览器推送消息 type orderId content
+        Map map = new HashMap();
+        map.put("type", 1);  //1表示来单提醒 2表示客户催单
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orderNumber);
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
 
         return vo;
     }
@@ -421,5 +437,65 @@ public class OrderServiceimpl implements OrderService {
                 .deliveryTime(LocalDateTime.now())
                 .build();
         orderMapper.update(orders);
+    }
+
+    /**
+     * 取消超时未支付的订单
+     */
+    @Override
+    public void cancelTimeoutOrders() {
+        LocalDateTime time = LocalDateTime.now().plusMinutes(-15);
+        List<Orders> ordersList = orderMapper.getByStatusAndOrderTimeLT(Orders.PENDING_PAYMENT, time);
+        if (ordersList == null || ordersList.isEmpty()) {
+            log.info("没有超时未支付的订单需要处理");
+            return;
+        }
+        log.info("处理超时未支付订单数量：{}", ordersList.size());
+        for (Orders orders : ordersList) {
+            orders.setStatus(Orders.CANCELLED);
+            orders.setCancelReason("订单超时未支付");
+            orders.setCancelTime(LocalDateTime.now());
+            orderMapper.update(orders);
+        }
+    }
+
+    /**
+     * 完成派送中的订单（定时任务使用）
+     */
+    @Override
+    public void completeDeliveryOrders() {
+        List<Orders> ordersList = orderMapper.getByStatus(Orders.DELIVERY_IN_PROGRESS);
+        if (ordersList == null || ordersList.isEmpty()) {
+            log.info("没有派送中的订单需要处理");
+            return;
+        }
+        log.info("处理派送中订单数量：{}", ordersList.size());
+        for (Orders orders : ordersList) {
+            orders.setStatus(Orders.COMPLETED);
+            orders.setDeliveryTime(LocalDateTime.now());
+            orderMapper.update(orders);
+        }
+    }
+
+    /**
+     * 用户催单
+     * @param id 订单ID
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.getOrderDetail(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        // 构建催单消息
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", 2);  // 2表示客户催单
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orders.getNumber() + " 客户催单");
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
+        log.info("用户催单，订单ID：{}", id);
     }
 }

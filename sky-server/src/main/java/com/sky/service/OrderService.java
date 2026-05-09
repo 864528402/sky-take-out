@@ -86,4 +86,19 @@ public interface OrderService {
      * @param id
      */
     void complete(Long id);
+    /**
+     * 取消超时未支付的订单
+     */
+    void cancelTimeoutOrders();
+
+    /**
+     * 完成派送中的订单（定时任务使用）
+     */
+    void completeDeliveryOrders();
+
+    /**
+     * 用户催单
+     * @param id 订单ID
+     */
+    void reminder(Long id);
 }
